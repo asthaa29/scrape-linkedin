@@ -181,6 +181,18 @@ def get_school_info(school):
         'date_range': '.pv-entity__dates span:nth-of-type(2)',
         'activities': '.activities-societies'
     })
+    
+def get_certification_info(school):
+    """
+    Returns:
+        dict of school name, degree, grades, field_of_study, date_range, &
+        extra-curricular activities
+    """
+    return get_info(school, {
+        'name': '.pv-certifications__summary-info.pv-entity__summary-info h3',
+        'issuer': '.pv-certifications__summary-info.pv-entity__summary-info p span:last-child',
+        'issuedon': '.pv-certifications__summary-info.pv-entity__summary-info p:nth-child(3) span:last-child'
+    })
 
 
 def get_volunteer_info(exp):
@@ -208,7 +220,6 @@ def get_skill_info(skill):
         'endorsements': '.pv-skill-category-entity__endorsement-count'
     }, default=0)
 
-
 # Takes a recommendation element and return a dict of relevant information.
 def get_recommendation_details(rec):
     li_id_expr = re.compile(
@@ -221,7 +232,8 @@ def get_recommendation_details(rec):
         'connection': {
             'relationship': None,
             'name': None,
-            'li_id': None
+            'li_id': None,
+            'img': None
         }
     }
 
@@ -241,7 +253,14 @@ def get_recommendation_details(rec):
                 recommender.attrs['href']).group()
         except AttributeError as e:
             pass
-
+        
+        recommender_image = one_or_default(
+            recommender, 'img')
+        
+        if recommender_image:
+            rec_dict['connection']['img'] = recommender_image['src']
+        
+        
         recommender_detail = one_or_default(
             recommender, '.pv-recommendation-entity__detail')
         if recommender_detail:

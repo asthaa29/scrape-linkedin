@@ -10,7 +10,6 @@ import time
 from .Profile import Profile
 from .utils import AnyEC
 
-
 class ProfileScraper(Scraper):
     """
     Scraper for Personal LinkedIn Profiles. See inherited Scraper class for
@@ -25,8 +24,10 @@ class ProfileScraper(Scraper):
         return self.get_profile()
 
     def scrape(self, url='', user=None):
+        print("Scrape:",user)
         self.load_profile_page(url, user)
-        return self.get_profile()
+        content = self.get_profile()
+        return content
 
     def load_profile_page(self, url='', user=None):
         """Load profile page and all async content
@@ -90,8 +91,13 @@ class ProfileScraper(Scraper):
         except:
             raise Exception(
                 "Could not find profile wrapper html. This sometimes happens for exceptionally long profiles.  Try decreasing scroll-increment.")
+        interest_details = self.get_interests_info()
+        
+        button = self.driver.find_element_by_css_selector(
+                '.pv-interests-modal button')
+        button.click()
         contact_info = self.get_contact_info()
-        return Profile(profile + contact_info)
+        return Profile(profile + contact_info + interest_details)
 
     def get_contact_info(self):
         try:
@@ -102,6 +108,78 @@ class ProfileScraper(Scraper):
             button.click()
             contact_info = self.wait_for_el('.pv-contact-info')
             return contact_info.get_attribute('outerHTML')
+        except Exception as e:
+            print(e)
+            return ""
+    
+    def checkTabLoad(self, selector, oldContent):
+        content = self.driver.find_element_by_css_selector(selector)
+        if oldContent == content:
+            return True
+        else:
+            return False
+        
+    def get_interests_info(self):
+        content = ""
+        try:
+            try:
+                button = self.driver.find_element_by_css_selector(
+                    'a[data-control-name="view_interest_details"]')
+                button.click()
+                time.sleep(2)
+                #Get Influencer Details
+                influencer_details = self.wait_for_el('.pv-interests-list .entity-list-wrapper')
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", influencer_details);
+                time.sleep(1)
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", influencer_details);
+                time.sleep(1)
+                content = influencer_details.get_attribute('outerHTML') 
+                content = content.replace('entity-list-wrapper','influencer_details')
+            except:
+                # Continue running script
+                print("No Influencer associated")
+            
+            try:
+                #Get companies details
+                button = self.driver.find_element_by_css_selector(
+                    'a[data-control-name="following_companies"]')
+                button.click()
+                self.driver.implicitly_wait(2)
+                self.wait(EC.staleness_of(self.driver.find_element_by_css_selector('.pv-interests-list .entity-list-wrapper')))
+                companies = self.wait_for_el('.pv-interests-list .entity-list-wrapper')
+                time.sleep(2)
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", companies);
+                time.sleep(1)
+                content += companies.get_attribute('outerHTML').replace('entity-list-wrapper','following_companies')
+            except:
+                # Continue running script
+                print("No Companies associated")
+            
+            try:
+                #Get Groups data
+                button = self.driver.find_element_by_css_selector(
+                    'a[data-control-name="following_groups"]')
+                button.click()
+                self.wait(EC.staleness_of(self.driver.find_element_by_css_selector('.pv-interests-list .entity-list-wrapper')))
+                groups = self.wait_for_el('.pv-interests-list .entity-list-wrapper')
+                content += groups.get_attribute('outerHTML').replace('entity-list-wrapper','following_groups')
+            except:
+                # Continue running script
+                print("No Groups associated")
+                
+            try:
+                #Get Schools
+                button = self.driver.find_element_by_css_selector(
+                    'a[data-control-name="following_schools"]')
+                button.click()
+                self.wait(EC.staleness_of(self.driver.find_element_by_css_selector('.pv-interests-list .entity-list-wrapper')))
+                schools = self.wait_for_el('.pv-interests-list .entity-list-wrapper')
+                content += schools.get_attribute('outerHTML').replace('entity-list-wrapper','following_schools')
+            except:
+                # Continue running script
+                print("No Schools associated")
+            
+            return content
         except Exception as e:
             print(e)
             return ""

@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
+from webdriver_manager.chrome import ChromeDriverManager
 
 class Scraper(object):
     """
@@ -36,14 +37,18 @@ class Scraper(object):
             return
 
         self.was_passed_instance = False
-        self.driver = driver(**driver_options)
+        self.driver = driver(ChromeDriverManager().install(),**driver_options)
         self.scroll_pause = scroll_pause
         self.scroll_increment = scroll_increment
         self.timeout = timeout
         self.driver.get('http://www.linkedin.com')
         self.driver.set_window_size(1920, 1080)
-
-        if 'LI_EMAIL' in environ and 'LI_PASS' in environ:
+        
+        email = None
+        password = None
+        if email:
+            self.login(email, password)
+        elif 'LI_EMAIL' in environ and 'LI_PASS' in environ:
             self.login(environ['LI_EMAIL'], environ['LI_PASS'])
         else:
             if not cookie and 'LI_AT' not in environ:
@@ -62,12 +67,12 @@ class Scraper(object):
         raise Exception('Must override abstract method scrape')
 
     def login(self, email, password):
-        email_input = self.driver.find_element_by_css_selector(
-            'input.login-email')
-        password_input = self.driver.find_element_by_css_selector(
-            'input.login-password')
+        email_input = self.driver.find_element_by_id("session_key")
         email_input.send_keys(email)
+
+        password_input = self.driver.find_element_by_id("session_password")
         password_input.send_keys(password)
+        
         password_input.send_keys(Keys.ENTER)
 
     def get_html(self, url):
@@ -131,3 +136,7 @@ class Scraper(object):
     def quit(self):
         if self.driver and not self.was_passed_instance:
             self.driver.quit()
+    
+    # Deleting (Calling destructor) 
+    def __del__(self): 
+        self.quit()

@@ -8,7 +8,8 @@ class Profile(ResultsObject):
     """Linkedin User Profile Object"""
 
     attributes = ['personal_info', 'experiences',
-                  'skills', 'accomplishments', 'interests', 'recommendations']
+                  'skills', 'accomplishments', 'interests', 'recommendations',
+                  'influencers','companies','groups','schools']
 
     @property
     def personal_info(self):
@@ -21,9 +22,10 @@ class Profile(ResultsObject):
         personal_info = get_info(top_card, {
             'name': '.pv-top-card--list > li',
             'headline': '.flex-1.mr5 h2',
-            'company': 'li[data-control-name="position_see_more"]',
-            'school': 'li[data-control-name="education_see_more"]',
+            'company': 'li a[data-control-name="position_see_more"]',
+            'school': 'li a[data-control-name="education_see_more"]',
             'location': '.pv-top-card--list-bullet > li',
+            'connected': '.pv-top-card--list-bullet > li:nth-child(2)'
         })
 
         personal_info['summary'] = text_or_default(
@@ -36,7 +38,7 @@ class Profile(ResultsObject):
 
         if not image_element:
             image_element = one_or_default(
-                top_card, 'img.pv-top-card-section__photo')
+                top_card, 'img.pv-top-card__photo')
 
         # Set image url to the src of the image html tag, if it exists
         try:
@@ -47,15 +49,15 @@ class Profile(ResultsObject):
         personal_info['image'] = image_url
 
         followers_text = text_or_default(self.soup,
-                                         '.pv-recent-activity-section__follower-count', '')
-        personal_info['followers'] = followers_text.replace(
-            'followers', '').strip()
+                                         '.pv-recent-activity-section-v2', '')
+        followers_text = followers_text.strip()
+        personal_info['followers'] = followers_text
 
         # print(contact_info)
         personal_info.update(get_info(contact_info, {
             'email': '.ci-email .pv-contact-info__ci-container',
             'phone': '.ci-phone .pv-contact-info__ci-container',
-            'connected': '.ci-connected .pv-contact-info__ci-container'
+            #'connected': '.ci-connected .pv-contact-info__ci-container'
         }))
 
         personal_info['websites'] = []
@@ -73,6 +75,7 @@ class Profile(ResultsObject):
             dict of person's professional experiences.  These include:
                 - Jobs
                 - Education
+                - Certification and Licenses
                 - Volunteer Experiences
         """
         experiences = {}
@@ -89,6 +92,11 @@ class Profile(ResultsObject):
             container, '#education-section .pv-education-entity')
         schools = list(map(get_school_info, schools))
         experiences['education'] = schools
+        
+        cert_licenses = all_or_default(
+            container, '#certifications-section .pv-certification-entity')
+        cert_licenses = list(map(get_certification_info, cert_licenses))
+        experiences['certifications'] = cert_licenses
 
         volunteering = all_or_default(
             container, '.pv-profile-section.volunteering-section .pv-volunteering-entity')
@@ -104,13 +112,25 @@ class Profile(ResultsObject):
             list of skills {name: str, endorsements: int} in decreasing order of
             endorsement quantity.
         """
-        skills = self.soup.select('.pv-skill-category-entity__skill-wrapper')
-        skills = list(map(get_skill_info, skills))
-
-        # Sort skills based on endorsements.  If the person has no endorsements
-        def sort_skills(x): return int(
-            x['endorsements'].replace('+', '')) if x['endorsements'] else 0
-        return sorted(skills, key=sort_skills, reverse=True)
+        # Identify top skills
+        
+        skillsList = []
+        
+        container = one_or_default(self.soup, '.pv-skill-categories-section__top-skills')
+        topSkills = all_or_default(container, '.pv-skill-category-entity__skill-wrapper')
+        topSkills = list(map(get_skill_info, topSkills))
+        
+        skillsList.append({"category":"Top Skills", "skills": topSkills})
+        
+        skillLists = one_or_default(self.soup, ".pv-skill-categories-section")
+        skillCategories = all_or_default(skillLists, '.pv-skill-category-list')
+        for category in skillCategories:
+            skillListHeading = text_or_default(category, '.pv-skill-categories-section__secondary-skill-heading')
+            skills = all_or_default(category,'.pv-skill-category-entity__skill-wrapper')
+            skills = list(map(get_skill_info, skills))
+            skillsList.append({"category": skillListHeading, "skills": skills})
+            
+        return skillsList 
 
     @property
     def accomplishments(self):
@@ -118,7 +138,6 @@ class Profile(ResultsObject):
         Returns:
             dict of professional accomplishments including:
                 - publications
-                - cerfifications
                 - patents
                 - courses
                 - projects
@@ -128,7 +147,7 @@ class Profile(ResultsObject):
                 - organizations
         """
         accomplishments = dict.fromkeys([
-            'publications', 'certifications', 'patents',
+            'publications', 'patents',
             'courses', 'projects', 'honors',
             'test_scores', 'languages', 'organizations'
         ])
@@ -149,7 +168,61 @@ class Profile(ResultsObject):
         interests = all_or_default(container, 'ul > li')
         interests = map(lambda i: text_or_default(
             i, '.pv-entity__summary-title'), interests)
+        
         return list(interests)
+    
+    @property
+    def influencers(self):
+        """
+        Returns:
+            list of person's interests
+        """
+        container = one_or_default(self.soup, '.influencer_details')
+        influencers = all_or_default(container, 'ul > li')
+        influencers = map(lambda i: text_or_default(
+            i, '.pv-entity__summary-title-text'), influencers)
+        
+        return list(influencers)
+    
+    @property
+    def companies(self):
+        """
+        Returns:
+            list of person's interests
+        """
+        container = one_or_default(self.soup, '.following_companies')
+        companies = all_or_default(container, 'ul > li')
+        companies = map(lambda i: text_or_default(
+            i, '.pv-entity__summary-title-text'), companies)
+
+        return list(companies)
+    
+    @property
+    def groups(self):
+        """
+        Returns:
+            list of person's interests
+        """
+        container = one_or_default(self.soup, '.following_groups')
+        groups = all_or_default(container, 'ul > li')
+        
+        groups = map(lambda i: text_or_default(
+            i, '.pv-entity__summary-title-text'), groups)        
+        
+        return list(groups)
+    
+    @property
+    def schools(self):
+        """
+        Returns:
+            list of person's interests
+        """
+        container = one_or_default(self.soup, '.following_schools')
+        schools = all_or_default(container, 'ul > li')
+        schools = map(lambda i: text_or_default(
+            i, '.pv-entity__summary-title-text'), schools)
+        
+        return list(schools)
 
     @property
     def recommendations(self):
