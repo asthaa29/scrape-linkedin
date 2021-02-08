@@ -35,8 +35,6 @@ unauthenticated or unusual requests
     - [Configuration](#configuration)
   - [Issues](#issues)
 
-<!-- Added by: austinoboyle, at: 2018-05-06T20:13-04:00 -->
-
 <!--te-->
 
 ## Installation
@@ -88,7 +86,7 @@ environment variable** if both are set.
 
 ## Examples
 
-See [`/examples`](https://github.com/austinoboyle/scrape-linkedin-selenium/tree/master/examples)
+See [`/examples`](https://github.com/asthaa29/scrape-linkedin/tree/master/examples)
 
 ## Usage
 
@@ -113,8 +111,8 @@ Options:
 
 Examples:
 
--   Get Austin O'Boyle's profile info: `$ scrapeli --user=asthaa29`
--   Get only the skills of Austin O'Boyle: `$ scrapeli --user=asthaa29 -a skills`
+-   Get Astha Agarwal profile info: `$ scrapeli --user=asthaagarwal`
+-   Get only the skills of Astha Agarwal: `$ scrapeli --user=asthaagarwal -a skills`
 -   Parse stored html profile and save json output: `$ scrapeli -i /path/file.html -o output.json`
 
 ### Python Package
@@ -127,7 +125,7 @@ Use `ProfileScraper` component to scrape profiles.
 from scrape_linkedin import ProfileScraper
 
 with ProfileScraper() as scraper:
-    profile = scraper.scrape(user='austinoboyle')
+    profile = scraper.scrape(user='asthaagarwal')
 print(profile.to_dict())
 ```
 
@@ -281,4 +279,4 @@ scrape_in_parallel(
 ## Issues
 
 Report bugs and feature requests
-[here](https://github.com/austinoboyle/scrape-linkedin-selenium/issues).
+[here](https://github.com/asthaa29/scrape-linkedin/issues).
