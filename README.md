@@ -43,11 +43,11 @@ unauthenticated or unusual requests
 
 ### Install with pip
 
-Run `pip install git+git://github.com/austinoboyle/scrape-linkedin-selenium.git`
+Run `pip install git+git://github.com/asthaa29/scrape-linkedin.git`
 
 ### Install from source
 
-`git clone https://github.com/austinoboyle/scrape-linkedin-selenium.git`
+`git clone https://github.com/asthaa29/scrape-linkedin.git`
 
 Run `python setup.py install`
 
@@ -113,8 +113,8 @@ Options:
 
 Examples:
 
--   Get Austin O'Boyle's profile info: `$ scrapeli --user=austinoboyle`
--   Get only the skills of Austin O'Boyle: `$ scrapeli --user=austinoboyle -a skills`
+-   Get Austin O'Boyle's profile info: `$ scrapeli --user=asthaa29`
+-   Get only the skills of Austin O'Boyle: `$ scrapeli --user=asthaa29 -a skills`
 -   Parse stored html profile and save json output: `$ scrapeli -i /path/file.html -o output.json`
 
 ### Python Package
@@ -164,10 +164,14 @@ a profile. Also has a to_dict() method that returns all of the data as a dict
     -   volunteering
     -   jobs
     -   education
+    -   cerfifications
 -   interests
+    - schools
+    - companies
+    - groups
+    - influencers
 -   accomplishments
     -   publications
-    -   cerfifications
     -   patents
     -   courses
     -   projects
