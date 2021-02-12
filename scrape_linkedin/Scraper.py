@@ -23,7 +23,7 @@ class Scraper(object):
         - timeout {float}: time to wait for page to load first batch of async content
     """
 
-    def __init__(self, cookie=None, scraperInstance=None, driver=selenium.webdriver.Chrome, driver_options={}, scroll_pause=0.1, scroll_increment=300, timeout=10):
+    def __init__(self, cookie=None, scraperInstance=None, driver=selenium.webdriver.Chrome, driver_options={}, scroll_pause=0.1, scroll_increment=300, timeout=10, credentials = None):
         if type(self) is Scraper:
             raise Exception(
                 'Scraper is an abstract class and cannot be instantiated directly')
@@ -44,8 +44,10 @@ class Scraper(object):
         self.driver.get('http://www.linkedin.com')
         self.driver.set_window_size(1920, 1080)
         
-        email = None
-        password = None
+        if credentials:
+            email = credentials["email"]
+            password = credentials["password"]
+            
         if email:
             self.login(email, password)
         elif 'LI_EMAIL' in environ and 'LI_PASS' in environ:
