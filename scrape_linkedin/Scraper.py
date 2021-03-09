@@ -44,6 +44,7 @@ class Scraper(object):
         self.driver.get('http://www.linkedin.com')
         self.driver.set_window_size(1920, 1080)
         
+        email = ""
         if credentials:
             email = credentials["email"]
             password = credentials["password"]

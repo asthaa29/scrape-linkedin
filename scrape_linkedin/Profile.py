@@ -240,7 +240,7 @@ class Profile(ResultsObject):
             recs["given"].append(get_recommendation_details(rec_given))
 
         return recs
-
+    
     def to_dict(self):
         info = super(Profile, self).to_dict()
         info['personal_info']['current_company_link'] = ''
