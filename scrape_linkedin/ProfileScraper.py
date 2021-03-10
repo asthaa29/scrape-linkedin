@@ -8,6 +8,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 import time
 from .Profile import Profile
+from .Activity import Activity
 from .utils import AnyEC
 
 class ProfileScraper(Scraper):
@@ -15,7 +16,8 @@ class ProfileScraper(Scraper):
     Scraper for Personal LinkedIn Profiles. See inherited Scraper class for
     details about the constructor.
     """
-    MAIN_SELECTOR = '.core-rail'
+    PROFILE_MAIN_SELECTOR = '.scaffold-layout--main-aside'
+    ACTIVITY_MAIN_SELECTOR = '.pv-recent-activity-detail__outlet-container'
     ERROR_SELECTOR = '.profile-unavailable'
 
     def scrape_by_email(self, email):
@@ -27,7 +29,9 @@ class ProfileScraper(Scraper):
         print("Scrape:",user)
         self.load_profile_page(url, user)
         content = self.get_profile()
-        return content
+        self.load_activity_page(user)
+        activities = self.get_activities()
+        return {'profile': content, 'activities': activities}
 
     def load_profile_page(self, url='', user=None):
         """Load profile page and all async content
@@ -45,9 +49,9 @@ class ProfileScraper(Scraper):
         self.driver.get(url)
         # Wait for page to load dynamically via javascript
         try:
-            myElem = WebDriverWait(self.driver, self.timeout).until(AnyEC(
+            myElem = WebDriverWait(self.driver, 100).until(AnyEC(
                 EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, self.MAIN_SELECTOR)),
+                    (By.CSS_SELECTOR, self.PROFILE_MAIN_SELECTOR)),
                 EC.presence_of_element_located(
                     (By.CSS_SELECTOR, self.ERROR_SELECTOR))
             ))
@@ -63,13 +67,66 @@ class ProfileScraper(Scraper):
 
         # Check if we got the 'profile unavailable' page
         try:
-            self.driver.find_element_by_css_selector(self.MAIN_SELECTOR)
+            self.driver.find_element_by_css_selector(self.PROFILE_MAIN_SELECTOR)
         except:
             raise ValueError(
                 'Profile Unavailable: Profile link does not match any current Linkedin Profiles')
         # Scroll to the bottom of the page incrementally to load any lazy-loaded content
         self.scroll_to_bottom()
         self.expand_given_recommendations()
+
+
+    def load_activity_page(self, user=None):
+        """Load profile page and all async content
+
+        Params:
+            - url {str}: url of the profile to be loaded
+        Raises:
+            ValueError: If link doesn't match a typical profile url
+        """
+        if user:
+            url = 'https://www.linkedin.com/in/{username}/detail/recent-activity/'.format(username=user)
+        if 'com/in/' not in url and 'detail/recent-activity/' not in url:
+            raise ValueError(
+                "Url must look like... .com/in/NAME or... '.com/sales/gmail/profile/proxy/EMAIL")
+        self.driver.get(url)
+        # Wait for page to load dynamically via javascript
+        try:
+            myElem = WebDriverWait(self.driver, 100).until(AnyEC(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, self.ACTIVITY_MAIN_SELECTOR)),
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, self.ERROR_SELECTOR))
+            ))
+        except TimeoutException as e:
+            raise ValueError(
+                """Took too long to load profile.  Common problems/solutions:
+                1. Invalid LI_AT value: ensure that yours is correct (they
+                   update frequently)
+                2. Slow Internet: increase the time out parameter in the Scraper
+                   constructor
+                3. Invalid e-mail address (or user does not allow e-mail scrapes) on scrape_by_email call
+                """)
+
+        # Check if we got the 'profile unavailable' page
+        try:
+            self.driver.find_element_by_css_selector(self.ACTIVITY_MAIN_SELECTOR)
+        except:
+            raise ValueError(
+                'Profile Unavailable: Profile link does not match any current Linkedin Profiles')
+        # Scroll to the bottom of the page incrementally to load any lazy-loaded content
+        # self.scroll_to_bottom()
+
+    def get_activities(self):
+        try:
+            activities = self.driver.find_element_by_css_selector(
+                self.ACTIVITY_MAIN_SELECTOR).get_attribute("outerHTML")
+        except:
+            raise Exception(
+                "Could not find profile wrapper html. This sometimes happens for exceptionally long profiles.  Try decreasing scroll-increment.")
+
+        return Activity(activities)
+
 
     def expand_given_recommendations(self):
         try:
@@ -87,7 +144,7 @@ class ProfileScraper(Scraper):
     def get_profile(self):
         try:
             profile = self.driver.find_element_by_css_selector(
-                self.MAIN_SELECTOR).get_attribute("outerHTML")
+                self.PROFILE_MAIN_SELECTOR).get_attribute("outerHTML")
         except:
             raise Exception(
                 "Could not find profile wrapper html. This sometimes happens for exceptionally long profiles.  Try decreasing scroll-increment.")
