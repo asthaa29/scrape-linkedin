@@ -115,7 +115,7 @@ class ProfileScraper(Scraper):
             raise ValueError(
                 'Profile Unavailable: Profile link does not match any current Linkedin Profiles')
         # Scroll to the bottom of the page incrementally to load any lazy-loaded content
-        # self.scroll_to_bottom()
+        self.scroll_to_bottom()
 
     def get_activities(self):
         try:
