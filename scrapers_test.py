@@ -43,5 +43,5 @@ class LinkedInScraper:
         return json_file_name
 
 
-credentials = {"email":"email here", "password":"password here"}
+credentials = {"email":"uditsrn28@gmail.com", "password":"Nc1hr@@r8u7d12804199190"}
 LinkedInScraper.scrapper('Udit Sarin', 'uditsarin',credentials)

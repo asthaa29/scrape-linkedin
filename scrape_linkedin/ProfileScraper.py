@@ -27,8 +27,8 @@ class ProfileScraper(Scraper):
 
     def scrape(self, url='', user=None):
         print("Scrape:",user)
-        # self.load_profile_page(url, user)
-        # content = self.get_profile()
+        self.load_profile_page(url, user)
+        content = self.get_profile()
         content= None
         self.load_activity_page(user)
         activities = self.get_activities()
