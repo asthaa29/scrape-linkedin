@@ -141,7 +141,7 @@ class Scraper(object):
                 "return Math.min({}, document.body.scrollHeight)".format(current_height + self.scroll_increment))
             value_found = self.driver.find_elements_by_class_name('feed-shared-actor__sub-description')[-1].find_element_by_tag_name('span').find_element_by_tag_name('span').text
             print(value_found[:3])
-            if new_height == current_height or value_found[:3] == '2mo':
+            if new_height == current_height or value_found[:3] == '1yr':
                 break
             self.driver.execute_script(
                 "window.scrollTo(0, {});".format(new_height))
