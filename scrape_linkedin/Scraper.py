@@ -9,6 +9,8 @@ from selenium.webdriver.common.keys import Keys
 
 from webdriver_manager.chrome import ChromeDriverManager
 
+from .utils import *
+
 class Scraper(object):
     """
     Wrapper for selenium Chrome driver with methods to scroll through a page and
@@ -121,6 +123,32 @@ class Scraper(object):
          # Use JQuery to click on invisible expandable 'see more...' elements
         self.driver.execute_script(
             'document.querySelectorAll(".lt-line-clamp__ellipsis:not(.lt-line-clamp__ellipsis--dummy) .lt-line-clamp__more").forEach(el => el.click())')
+
+    def scroll_to_bottom_activity(self):
+        """Scroll to the bottom of the page
+
+        Params:
+            - scroll_pause_time {float}: time to wait (s) between page scroll increments
+            - scroll_increment {int}: increment size of page scrolls (pixels)
+        """
+        # NOTE: this starts scrolling from the current scroll position, not the top of the page.
+        current_height = self.driver.execute_script(
+            "return document.documentElement.scrollTop")
+        while True:
+            self.click_expandable_buttons()
+            # Scroll down to bottom in increments of self.scroll_increment
+            new_height = self.driver.execute_script(
+                "return Math.min({}, document.body.scrollHeight)".format(current_height + self.scroll_increment))
+            value_found = self.driver.find_elements_by_class_name('feed-shared-actor__sub-description')[-1].find_element_by_tag_name('span').find_element_by_tag_name('span').text
+            print(value_found[:3])
+            if new_height == current_height or value_found[:3] == '1yr':
+                break
+            self.driver.execute_script(
+                "window.scrollTo(0, {});".format(new_height))
+            current_height = new_height
+            # Wait to load page
+            time.sleep(self.scroll_pause)
+
 
     def wait(self, condition):
         return WebDriverWait(self.driver, self.timeout).until(condition)

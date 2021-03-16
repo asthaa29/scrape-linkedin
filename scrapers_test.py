@@ -29,8 +29,7 @@ class LinkedInScraper:
         '''
 
         #credentials = {"email":linkedInCreds["linkedInEmail"], "password":linkedInCreds["linkedInPassword"]}
-        credentials = {"email":"uditsrn28@gmail.com", "password":"Nc1hr@@r8u7d12804199190"}
-        scraper = ProfileScraper(credentials=linkedInCreds)
+        scraper = ProfileScraper(credentials=linkedInCreds, scroll_pause=.1)
         user_data = scraper.scrape(user=linkedin_username)
         result = {}
         for key, value in user_data.items():
@@ -44,5 +43,5 @@ class LinkedInScraper:
         return json_file_name
 
 
-credentials = {"email":"insert email here", "password":"insert password here"}
+credentials = {"email":"email here", "password":"password here"}
 LinkedInScraper.scrapper('Udit Sarin', 'uditsarin',credentials)

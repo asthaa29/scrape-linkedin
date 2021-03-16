@@ -27,7 +27,6 @@ class TextChanged(object):
         actual_text = _find_element(driver, self.locator).text
         return actual_text != self.text
 
-
 class AnyEC(object):
     def __init__(self, *args):
         self.ecs = args
