@@ -33,6 +33,7 @@ class LinkedInScraper:
         user_data = scraper.scrape(user=linkedin_username)
         result = {}
         for key, value in user_data.items():
+            print(key)
             result[key] = value.to_dict()
         # Fix the value of followers
         result['profile']["personal_info"]["followers"] = result['profile']["personal_info"]["followers"][9:result['profile']["personal_info"]["followers"].index("followers")].strip()
@@ -43,5 +44,5 @@ class LinkedInScraper:
         return json_file_name
 
 
-credentials = {"email":"uditsrn28@gmail.com", "password":"Nc1hr@@r8u7d12804199190"}
+credentials = {"email":"email here", "password":"password here"}
 LinkedInScraper.scrapper('Udit Sarin', 'uditsarin',credentials)

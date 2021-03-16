@@ -29,7 +29,6 @@ class ProfileScraper(Scraper):
         print("Scrape:",user)
         self.load_profile_page(url, user)
         content = self.get_profile()
-        content= None
         self.load_activity_page(user)
         activities = self.get_activities()
         return {'profile': content, 'activities': activities}
@@ -117,7 +116,7 @@ class ProfileScraper(Scraper):
                 'Profile Unavailable: Profile link does not match any current Linkedin Profiles')
         # Scroll to the bottom of the page incrementally to load any lazy-loaded content
         self.scroll_to_bottom_activity()
-        
+
     def get_activities(self):
         try:
             activities = self.driver.find_element_by_css_selector(
